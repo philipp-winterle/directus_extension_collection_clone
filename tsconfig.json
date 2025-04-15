@@ -1,0 +1,30 @@
+{
+	"compilerOptions": {
+		"target": "ES2019",
+		"lib": ["ESNext", "DOM"],
+		"module": "ESNext",
+		"moduleResolution": "node",
+		"strict": true,
+		"noFallthroughCasesInSwitch": true,
+		"esModuleInterop": true,
+		"noImplicitAny": true,
+		"noImplicitThis": true,
+		"noImplicitReturns": true,
+		"noUnusedLocals": true,
+		"noUncheckedIndexedAccess": true,
+		"noUnusedParameters": true,
+		"alwaysStrict": true,
+		"strictNullChecks": true,
+		"strictFunctionTypes": true,
+		"strictBindCallApply": true,
+		"strictPropertyInitialization": true,
+		"resolveJsonModule": true,
+		"skipLibCheck": false,
+		"forceConsistentCasingInFileNames": true,
+		"allowSyntheticDefaultImports": true,
+		"isolatedModules": true,
+		"rootDir": "./src",
+		"typeRoots": ["./types/*.d.ts", "../node_modules/@types"]
+	},
+	"include": ["./src/**/*.ts"]
+}
