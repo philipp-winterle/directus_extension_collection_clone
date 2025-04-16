@@ -4,28 +4,42 @@
       <div>Select a collection to clone</div>
     </template>
 
-    <!-- Main Content -->
-    <main class="container">
+    <div class="container">
       <v-info title="Collection Cloning" icon="copy_all" type="success">
         This tool allows you to clone any collection in your Directus instance.
         Select a collection below to get started.
       </v-info>
-
+      <!-- Main Content -->
       <div class="table-wrapper">
-        <collections-table />
+        <CollectionsTable @modal-state-changed="setModalState" />
       </div>
-    </main>
+    </div>
+
+    <!-- Overlay that activates when modal is open -->
+    <v-overlay :active="isModalOpen" class="modal-overlay" />
   </private-view>
 </template>
 
 <script lang="ts">
-import { defineComponent } from "vue";
+import { defineComponent, ref } from "vue";
 import CollectionsTable from "./components/Table.vue";
 
 export default defineComponent({
   name: "CollectionCloneModule",
   components: {
     CollectionsTable,
+  },
+  setup() {
+    const isModalOpen = ref(false);
+
+    function setModalState(isOpen: boolean) {
+      isModalOpen.value = isOpen;
+    }
+
+    return {
+      isModalOpen,
+      setModalState,
+    };
   },
 });
 </script>
@@ -42,5 +56,9 @@ export default defineComponent({
 
 .table-wrapper {
   margin-top: 20px;
+}
+
+.modal-overlay {
+  z-index: 500;
 }
 </style>

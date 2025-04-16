@@ -20,15 +20,20 @@ export default defineEndpoint({
     }) as Logger;
 
     const {
-      CollectionsService, FieldsService, RelationsService
+      CollectionsService, FieldsService, RelationsService,
     } = services;
 
-    router.get('/:collection/:newCollection', async(req: any, res) => {
+    router.post('/:sourceCollection/:targetCollection', async(req: any, res) => {
       const {
-        collection, newCollection, accountability
+        accountability
+      } = req;
+      const {
+        sourceCollection, targetCollection
       } = req.params;
 
-      if (!collection || !newCollection) {
+      console.log(accountability);
+
+      if (!sourceCollection || !targetCollection) {
         return res.status(400).send('Missing name of the collection to clone');
       }
 
@@ -36,7 +41,7 @@ export default defineEndpoint({
         return res.status(401).send('Unauthorized - Your user role does not have permission to clone collections');
       }
 
-      logger.info(`Cloning collection ${collection} to ${newCollection}`);
+      logger.info(`Cloning collection ${sourceCollection} to ${targetCollection}`);
 
       const collectionService = new CollectionsService({
         knex,
@@ -51,21 +56,21 @@ export default defineEndpoint({
       });
 
       try {
-        const collectionData = await collectionService.readOne(collection);
-        const fieldsData = await fieldsService.readAll(collection);
+        const collectionData = await collectionService.readOne(sourceCollection);
+        const fieldsData = await fieldsService.readAll(sourceCollection);
 
-        const cloneableFields = getCloneableFields(fieldsData, newCollection);
+        const cloneableFields = getCloneableFields(fieldsData, targetCollection);
         const cleanedCollection = cleanCollection(collectionData);
 
         const newCollectionPayload = {
-          collection: newCollection, // Just the name of the new collection
+          collection: targetCollection, // Just the name of the new collection
           meta: {
             ...cleanedCollection.meta, // Copy all the meta data from the original collection
-            collection: newCollection, // Update the collection name in the meta data
+            collection: targetCollection, // Update the collection name in the meta data
           },
           schema: cleanedCollection.schema ? {
             ...cleanedCollection.schema, // Copy all the schema data from the original collection
-            name: newCollection, // Update the schema name
+            name: targetCollection, // Update the schema name
           } : null,
           fields: cloneableFields // Copy all the cloneable fields from the original collection
         };
@@ -81,17 +86,17 @@ export default defineEndpoint({
         });
 
         // Get the relations data
-        const relationsData = await relationsService.readAll(collection);
+        const relationsData = await relationsService.readAll(sourceCollection);
 
         // Clone the relations
-        const cloneableRelations = await getCloneableRelations(relationsData, collection, newCollection, logger);
+        const cloneableRelations = await getCloneableRelations(relationsData, sourceCollection, targetCollection, logger);
 
         // Create the new relations
         for (const relation of cloneableRelations) {
           await relationsService.createOne(relation);
         }
 
-        logger.info(`Collection ${collection} successfully cloned to ${newCollection}`);
+        logger.info(`Collection ${sourceCollection} successfully cloned to ${targetCollection}`);
 
         return res.send({
           newCollectionPayload,
@@ -100,7 +105,7 @@ export default defineEndpoint({
       } catch (error) {
         logger.error(error);
 
-        return res.status(500).send(`Error cloning collection ${collection} to ${newCollection} - Error: ${error}`);
+        return res.status(500).send(`Error cloning collection ${sourceCollection} to ${targetCollection} - Error: ${error}`);
       }
     });
   }

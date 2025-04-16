@@ -4,31 +4,25 @@
     :items="collections"
     :loading="loading"
     :allow-header-reorder="false"
+    item-append="test"
     item-key="name"
-    show-select="one"
+    show-select="none"
     class="collections-table"
   >
-    <!-- <template #item-collection="{ item }">
-      <div class="collection-cell">
-        <span class="collection-name">{{ item.collection }}</span>
-      </div>
-    </template> -->
-
-    <template #item="{ item }">
-      <tr>
-        <td>{{ item.collection }}</td>
-        <td>
-          <ActionButton :collection="item.collection" />
-        </td>
-      </tr>
+    <template #item-append="{ item }">
+      <ActionButton
+        :collection="item.collection"
+        @click="openCloneModal(item.collection)"
+      />
     </template>
   </v-table>
 
-  <clone-collection-modal
-    v-if="activeCollection"
-    :active="!!activeCollection"
-    :collection-name="activeCollection"
-    @toggle="activeCollection = null"
+  <CloneCollectionModal
+    v-if="selectedCollection"
+    :active="!!selectedCollection"
+    :collection-name="selectedCollection"
+    :collections="collections"
+    @toggle="closeCloneModal"
     @submit="cloneCollection"
   />
 </template>
@@ -45,7 +39,8 @@ export default defineComponent({
     CloneCollectionModal,
     ActionButton,
   },
-  setup() {
+  emits: ["modal-state-changed"],
+  setup(props, { emit }) {
     const api = useApi();
     const collections = ref<any[]>([]);
     const loading = ref(true);
@@ -59,37 +54,58 @@ export default defineComponent({
         sortable: false,
         width: null,
       },
-      {
-        text: "Actions",
-        value: "actions",
-        align: "center",
-        sortable: false,
-        width: 100,
-      },
     ]);
 
     // Open clone modal for a specific collection
     function openCloneModal(collectionName: string) {
       selectedCollection.value = collectionName;
+      // Emit that modal is open
+      emit("modal-state-changed", true);
+    }
+
+    // Close clone modal
+    function closeCloneModal() {
+      selectedCollection.value = null;
+      // Emit that modal is closed
+      emit("modal-state-changed", false);
     }
 
     // Clone the collection
     async function cloneCollection(data: {
       sourceCollection: string;
       targetCollection: string;
+      onSuccess?: () => void;
+      onError?: (error: string) => void;
     }) {
-      loading.value = true;
       try {
-        await api.get(
-          `/collection_clone/${data.sourceCollection}/${data.targetCollection}`,
+        await api.post(
+          `/collection_clone/${data.sourceCollection}/${data.targetCollection}`
         );
-        activeCollection.value = null;
+
         // Refresh collections list
         await fetchCollections();
+
+        // Call success callback if provided
+        if (data.onSuccess) {
+          data.onSuccess();
+        }
       } catch (error) {
         console.error("Error cloning collection:", error);
-      } finally {
-        loading.value = false;
+
+        // Extract error message
+        let errorMessage = "Failed to clone collection";
+        if (error instanceof Error) {
+          errorMessage = error.message;
+        } else if (error && typeof error === "object" && "message" in error) {
+          errorMessage = String(error.message);
+        } else if (typeof error === "string") {
+          errorMessage = error;
+        }
+
+        // Call error callback if provided
+        if (data.onError) {
+          data.onError(errorMessage);
+        }
       }
     }
 
@@ -102,7 +118,7 @@ export default defineComponent({
         // Filter out system collections (starting with 'directus_')
         collections.value = response.data.data
           .filter(
-            (collection: any) => !collection.collection.startsWith("directus_"),
+            (collection: any) => !collection.collection.startsWith("directus_")
           )
           .map((collection: any) => ({
             collection: collection.collection,
@@ -124,6 +140,7 @@ export default defineComponent({
       tableHeaders,
       selectedCollection,
       openCloneModal,
+      closeCloneModal,
       cloneCollection,
     };
   },

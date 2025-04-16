@@ -4,29 +4,25 @@
     icon="content_copy"
     secondary
     small
-    @click="openCloneModal(item.collection)"
   >
-    <VIcon name="content_copy" />
+    <VIcon name="copy_all" />
   </VButton>
 </template>
 
 <script lang="ts">
 import { defineComponent } from "vue";
+import CloneCollectionModal from "./CloneCollectionModal.vue";
 
 export default defineComponent({
   name: "ActionButton",
+  components: {
+    CloneCollectionModal,
+  },
   props: {
     collection: {
       type: String,
       required: true,
     },
-  },
-  setup(props) {
-    const openCloneModal = () => {
-      console.log(props.collection);
-    };
-
-    return { openCloneModal };
   },
 });
 </script>
