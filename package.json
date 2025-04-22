@@ -20,7 +20,7 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/philipp-winterle/directus_extension_collection_clone"
+    "url": "git+https://github.com/philipp-winterle/directus_extension_collection_clone.git"
   },
   "type": "module",
   "files": [
