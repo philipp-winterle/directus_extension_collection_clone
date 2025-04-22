@@ -8,7 +8,7 @@ import {
   getCloneableRelations
 } from './utils';
 
-const EXTENSION_NAME = ansis.ansi256(198)(`[ ${packageJson.name.replaceAll("-", " ").toUpperCase()} ] `);
+const EXTENSION_NAME = ansis.fg(198)(`[ ${packageJson.name.replaceAll("-", " ").toUpperCase()} ] `);
 
 export default defineEndpoint({
   id: "collection_clone",
