@@ -2,7 +2,7 @@
   "name": "directus_bundle_collection_clone",
   "description": "Clone collections in Directus",
   "icon": "copy_all",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "keywords": [
     "collection",
     "copy",
